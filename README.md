@@ -8,6 +8,58 @@ The Snakemake workflow covers read QC and trimming (fastp), alignment (STAR), co
 
 Outputs include normalised counts, DESeq2 result tables with shrunken log2 fold changes, and QC and diagnostic plots (PCA, sample distances, MA plot, volcano plot).
 
+## Papers this is based on
+
+- **Vogel C, Bodenhausen N, Gruissem W, Vorholt JA. 2016.** The
+  Arabidopsis leaf transcriptome reveals distinct but also overlapping
+  responses to colonization by phyllosphere commensals and pathogen
+  infection with impact on plant health. *New Phytologist* 212(1):192-207.
+  [DOI: 10.1111/nph.14036](https://doi.org/10.1111/nph.14036)
+  The source study: the 48 libraries (ENA PRJEB13938, ArrayExpress
+  E-MTAB-4683) and the experimental design analysed here.
+- **Love MI, Huber W, Anders S. 2014.** Moderated estimation of fold
+  change and dispersion for RNA-seq data with DESeq2. *Genome Biology*
+  15:550.
+  [DOI: 10.1186/s13059-014-0550-8](https://doi.org/10.1186/s13059-014-0550-8)
+  Normalisation, dispersion estimation and the Wald tests behind every
+  result table.
+- **Stephens M. 2017.** False discovery rates: a new deal. *Biostatistics*
+  18(2):275-294.
+  [DOI: 10.1093/biostatistics/kxw041](https://doi.org/10.1093/biostatistics/kxw041)
+  The `ashr` method used for the shrunken log2 fold changes (via
+  DESeq2's `lfcShrink`).
+- **Dobin A, Davis CA, Schlesinger F, et al. 2013.** STAR: ultrafast
+  universal RNA-seq aligner. *Bioinformatics* 29(1):15-21.
+  [DOI: 10.1093/bioinformatics/bts635](https://doi.org/10.1093/bioinformatics/bts635)
+  Splice-aware alignment to the genome.
+- **Liao Y, Smyth GK, Shi W. 2014.** featureCounts: an efficient general
+  purpose program for assigning sequence reads to genomic features.
+  *Bioinformatics* 30(7):923-930.
+  [DOI: 10.1093/bioinformatics/btt656](https://doi.org/10.1093/bioinformatics/btt656)
+  Gene-level read counts from the STAR alignments.
+- **Chen S, Zhou Y, Chen Y, Gu J. 2018.** fastp: an ultra-fast
+  all-in-one FASTQ preprocessor. *Bioinformatics* 34(17):i884-i890.
+  [DOI: 10.1093/bioinformatics/bty560](https://doi.org/10.1093/bioinformatics/bty560)
+  Read QC, adapter and quality trimming.
+- **Mölder F, Jablonski KP, Letcher B, et al. 2021.** Sustainable data
+  analysis with Snakemake. *F1000Research* 10:33.
+  [DOI: 10.12688/f1000research.29032.2](https://doi.org/10.12688/f1000research.29032.2)
+  The workflow engine.
+- **Cheng C-Y, Krishnakumar V, Chan AP, Thibaud-Nissen F, Schobel S,
+  Town CD. 2017.** Araport11: a complete reannotation of the
+  *Arabidopsis thaliana* reference genome. *The Plant Journal*
+  89(4):789-804.
+  [DOI: 10.1111/tpj.13415](https://doi.org/10.1111/tpj.13415)
+  Gene models used for indexing and counting (distributed with the
+  TAIR10 assembly in Ensembl Plants release 63).
+
+## Cross-check dataset
+
+**Bliek M. 2020.** RNAseq dataset feb 2020 (course counts and design for
+PRJEB13938; HISAT2 + featureCounts on Araport11). *Zenodo*.
+[DOI: 10.5281/zenodo.3627021](https://doi.org/10.5281/zenodo.3627021)
+Used for the independent count-level cross-check in [Validation](#validation).
+
 ## Data
 
 The study has 48 single-end libraries: 3 colonisation conditions × mock / Pst DC3000 × 2 time points (2 and 7 days post infection) × 4 replicates. `config/samples.tsv` lists every run with its ENA FASTQ URL and MD5 (built from the E-MTAB-4683 SDRF and the ENA file report).
