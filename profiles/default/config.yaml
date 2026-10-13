@@ -1,0 +1,8 @@
+# Loaded automatically by Snakemake (profiles/default).
+software-deployment-method: conda
+# The default ILP scheduler needs a CBC solver binary that is x86-only on some platforms
+# (crashes with "Bad CPU type in executable" on Apple Silicon); greedy works everywhere.
+scheduler: greedy
+# Be polite to ENA: at most 4 concurrent FASTQ downloads.
+resources:
+  - downloads=4

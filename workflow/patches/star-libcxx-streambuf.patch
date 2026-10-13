@@ -1,0 +1,82 @@
+--- a/source/ReadAlignChunk.h
++++ b/source/ReadAlignChunk.h
+@@ -8,7 +8,40 @@
+ #include "Transcriptome.h"
+ #include "BAMoutput.h"
+ #include "Quantifications.h"
++#include <istream>
++#include <ostream>
++#include <streambuf>
+ 
++// Stream buffer aliasing a caller-owned memory block.
++// std::stringbuf::pubsetbuf() is implementation-defined: libstdc++ adopts the buffer, libc++
++// (macOS/clang) ignores it, so reads never reach the mapper ("Number of input reads | 0").
++class FixedMemBuf : public std::streambuf {
++public:
++    FixedMemBuf(char* buf, std::size_t n) : size_((off_type) n) {
++        setg(buf, buf, buf + n);
++        setp(buf, buf + n);
++    }
++protected:
++    pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) override {
++        pos_type bad = pos_type(off_type(-1));
++        if ((which & std::ios_base::in) == (which & std::ios_base::out)) return bad;//exactly one of in/out
++        off_type cur = (which & std::ios_base::in) ? gptr() - eback() : pptr() - pbase();
++        off_type pos = dir == std::ios_base::beg ? off : (dir == std::ios_base::cur ? cur + off : size_ + off);
++        if (pos < 0 || pos > size_) return bad;
++        if (which & std::ios_base::in) {
++            setg(eback(), eback() + pos, egptr());
++        } else {
++            pbump((int) (pos - cur));
++        };
++        return pos_type(pos);
++    }
++    pos_type seekpos(pos_type pos, std::ios_base::openmode which) override {
++        return seekoff(off_type(pos), std::ios_base::beg, which);
++    }
++private:
++    off_type size_;
++};
++
+ class ReadAlignChunk {//chunk of reads and alignments
+ public:
+     Parameters& P;
+@@ -25,8 +58,8 @@
+     BAMoutput *chunkOutBAMcoord, *chunkOutBAMunsorted, *chunkOutBAMquant;
+     Quantifications *chunkQuants;
+     
+-    istringstream** readInStream;
+-    ostringstream*  chunkOutBAMstream;
++    istream** readInStream;
++    ostream*  chunkOutBAMstream;
+     ofstream chunkOutBAMfile;
+     string chunkOutBAMfileName;
+ 
+--- a/source/ReadAlignChunk.cpp
++++ b/source/ReadAlignChunk.cpp
+@@ -18,13 +18,12 @@
+     RA->iRead=0;
+ 
+     chunkIn=new char* [P.readNends];
+-    readInStream=new istringstream* [P.readNends];
++    readInStream=new istream* [P.readNends];
+     
+     for (uint ii=0;ii<P.readNends;ii++) {
+        chunkIn[ii]=new char[P.chunkInSizeBytesArray];//reserve more space to finish loading one read
+        memset(chunkIn[ii],'\n',P.chunkInSizeBytesArray);
+-       readInStream[ii] = new istringstream;
+-       readInStream[ii]->rdbuf()->pubsetbuf(chunkIn[ii],P.chunkInSizeBytesArray);
++       readInStream[ii] = new istream(new FixedMemBuf(chunkIn[ii],P.chunkInSizeBytesArray));
+        RA->readInStream[ii]=readInStream[ii];
+     };
+ 
+@@ -32,8 +31,7 @@
+     if (P.outSAMbool) {
+         chunkOutBAM=new char [P.chunkOutBAMsizeBytes];
+         RA->outBAMarray=chunkOutBAM;
+-        chunkOutBAMstream=new ostringstream;
+-        chunkOutBAMstream->rdbuf()->pubsetbuf(chunkOutBAM,P.chunkOutBAMsizeBytes);
++        chunkOutBAMstream=new ostream(new FixedMemBuf(chunkOutBAM,P.chunkOutBAMsizeBytes));
+         RA->outSAMstream=chunkOutBAMstream;
+         RA->outSAMstream->seekp(0,ios::beg);
+         chunkOutBAMtotal=0;

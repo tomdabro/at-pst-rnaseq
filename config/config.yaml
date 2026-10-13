@@ -1,0 +1,27 @@
+# Sample sheet (one row per sequencing run; built from ArrayExpress E-MTAB-4683 + ENA PRJEB13938).
+samples: config/samples.tsv
+
+# Which colonisation conditions to analyse. "control" = 10 mM MgCl2 (no commensal),
+# i.e. the plain Pst DC3000 vs mock comparison. Add "M_extorquens" / "S_melonis" to
+# include the commensal-colonised plants; each gets its own Pst-vs-mock contrasts.
+colonisation:
+  - control
+
+reference:
+  # Pinned Ensembl Plants release: TAIR10 assembly with Araport11 gene models.
+  fasta: https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-63/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.gz
+  gtf: https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-63/gtf/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.63.gtf.gz
+
+star:
+  sjdb_overhang: 100        # read length - 1 for the longest reads; 100 is safe for reads >= 50 nt
+  genome_sa_index_nbases: 12  # min(14, log2(genome size) / 2 - 1) for the 119 Mb Arabidopsis genome
+
+featurecounts:
+  # 0 = unstranded, 1 = stranded, 2 = reverse-stranded. The SDRF does not record the
+  # library strandedness ("not applicable"); check results/star/*/ and the featureCounts
+  # summary (results/counts/counts.tsv.summary) before trusting counts if unsure.
+  strandedness: 0
+
+deseq2:
+  alpha: 0.05        # adjusted p-value cut-off (also used for independent filtering)
+  lfc_threshold: 1   # |log2FC| cut-off used only to colour the volcano / MA plots
